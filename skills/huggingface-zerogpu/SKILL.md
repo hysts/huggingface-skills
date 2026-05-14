@@ -52,7 +52,7 @@ Key rules:
 1. **Instantiate models at module scope** and call `.to("cuda")` eagerly. ZeroGPU handles the actual device mapping transparently (see CUDA availability model below).
 2. **Decorate GPU functions with `@spaces.GPU`**. The decorator is a no-op outside ZeroGPU, so it is safe to keep in all environments.
 3. **Set `duration` to match the realistic worst-case workload** (default 60s). The platform pre-checks `requested duration` against the user's `remaining quota` — not against the actual run time — so a 10-second task left at the 60s default fails with `quota exceeded` as soon as the user's remaining quota drops below 60s. Smaller declared `duration` also ranks higher in the node-level queue. See "Duration and Quota" below.
-4. **`torch.compile` is NOT supported.** Use PyTorch [ahead-of-time compilation (AoTI)](https://huggingface.co/blog/zerogpu-aoti) (torch 2.8+) instead. For large models, combine with FlashAttention 3.
+4. **`torch.compile` is NOT supported.** Use PyTorch [ahead-of-time compilation (AoTI)](https://huggingface.co/blog/zerogpu-aoti) (torch 2.8+) instead.
 5. **Use `size="xlarge"` sparingly.** It allocates the full backing GPU, but costs 2x quota and tends to queue longer.
 
 ```python

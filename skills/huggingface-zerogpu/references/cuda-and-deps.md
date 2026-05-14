@@ -37,7 +37,7 @@ If you hand pip a wheel URL without pinning the surrounding environment, pip may
 
 ## Prefer kernels-community when unsure
 
-If you are not sure about the ZeroGPU runtime's torch / Python / ABI combination, prefer a [kernels-community](https://huggingface.co/kernels-community) kernel (e.g. `kernels-community/vllm-flash-attn3`) instead of a raw wheel URL. The kernels runtime handles ABI matching on your behalf, so no version pinning is required in your Space.
+If you are not sure about the ZeroGPU runtime's torch / Python / ABI combination, prefer a [kernels-community](https://huggingface.co/kernels-community) kernel (e.g. `kernels-community/flash-attn2`) instead of a raw wheel URL. The kernels runtime handles ABI matching on your behalf, so no version pinning is required in your Space.
 
 ## torch-family side-car drift
 
