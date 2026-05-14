@@ -9,7 +9,7 @@ Rules and patterns for ML demos on Hugging Face Spaces with **ZeroGPU** hardware
 
 ## Scope
 
-This skill is for **Gradio SDK Spaces using ZeroGPU hardware**. Docker and Static Spaces cannot schedule onto ZeroGPU, and Streamlit apps now run as Docker Spaces — so this skill applies only to Gradio. For general Gradio coding (components, layouts, event listeners), see the `huggingface-gradio` skill in this repo. The authoritative ZeroGPU docs live at https://huggingface.co/docs/hub/spaces-zerogpu — refer to them for runtime version lists and tier thresholds, which change over time.
+This skill is for **Gradio SDK Spaces using ZeroGPU hardware**. Docker and Static Spaces cannot schedule onto ZeroGPU, and Streamlit apps now run as Docker Spaces — so this skill applies only to Gradio. For general Gradio coding (components, layouts, event listeners), see the `huggingface-gradio` skill in this repo. The authoritative ZeroGPU docs live at https://huggingface.co/docs/hub/spaces-zerogpu — refer to them for the current backing GPU, runtime version lists, and tier thresholds, all of which change over time.
 
 ## Reference Files
 
@@ -22,16 +22,16 @@ This skill is for **Gradio SDK Spaces using ZeroGPU hardware**. Docker and Stati
 
 ## Hardware
 
-ZeroGPU runs on **NVIDIA H200**. Two GPU sizes:
+ZeroGPU exposes two GPU sizes that map to a fraction of the backing card:
 
-| `size` | Backing hardware | VRAM | Quota cost |
-|--------|------------------|------|------------|
-| `large` *(default)* | Half H200 | 70 GB | 1x |
-| `xlarge` | Full H200 | 141 GB | 2x |
+| `size` | Slice of backing GPU | Quota cost |
+|--------|----------------------|------------|
+| `large` *(default)* | Half | 1x |
+| `xlarge` | Full | 2x |
 
-Default `large` gives half a physical H200 — memory bandwidth and compute are significantly lower than full H200 specs. Use `xlarge` only when the workload genuinely needs the extra memory or compute.
+Default `large` gives half a physical GPU, so memory bandwidth and compute are significantly lower than the full card's specs. Use `xlarge` only when the workload genuinely needs the extra memory or compute.
 
-> **Common confusion**: ZeroGPU is sometimes claimed to run on A100. That is outdated — the platform migrated to H200. Hardware can change again without notice; check the [ZeroGPU docs](https://huggingface.co/docs/hub/spaces-zerogpu) for the current backing GPU.
+> **Backing GPU changes without notice.** ZeroGPU has already migrated across GPU generations several times; older write-ups may name A100 or H200, but those are outdated. For the current backing GPU and exact per-size VRAM, always check the [ZeroGPU docs](https://huggingface.co/docs/hub/spaces-zerogpu) before sizing workloads.
 
 ## Basic Pattern
 
@@ -53,7 +53,7 @@ Key rules:
 2. **Decorate GPU functions with `@spaces.GPU`**. The decorator is a no-op outside ZeroGPU, so it is safe to keep in all environments.
 3. **Set `duration` to match the realistic worst-case workload** (default 60s). The platform pre-checks `requested duration` against the user's `remaining quota` — not against the actual run time — so a 10-second task left at the 60s default fails with `quota exceeded` as soon as the user's remaining quota drops below 60s. Smaller declared `duration` also ranks higher in the node-level queue. See "Duration and Quota" below.
 4. **`torch.compile` is NOT supported.** Use PyTorch [ahead-of-time compilation (AoTI)](https://huggingface.co/blog/zerogpu-aoti) (torch 2.8+) instead. For large models, combine with FlashAttention 3.
-5. **Use `size="xlarge"` sparingly** — full H200, but 2x quota cost and longer queue times.
+5. **Use `size="xlarge"` sparingly.** It allocates the full backing GPU, but costs 2x quota and tends to queue longer.
 
 ```python
 @spaces.GPU(duration=120)
